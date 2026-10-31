@@ -212,6 +212,15 @@ This also removes caches for packages that are no longer installed. The cache
 root directory is retained; symlinks are removed without following their targets.
 Files outside Shelly's cache are not included.
 
+Shelly creates and updates the invoking user's cache with that user's credentials,
+including when launched through sudo, doas, pkexec, or run0. Running directly as
+root uses root's cache and creates root-owned entries. Absolute `XDG_CACHE_HOME`
+overrides are preserved. Failed user delegation never retries cache writes as root.
+
+Existing ownership damage is not repaired automatically. Use
+`shelly utility --fix-permissions` from your regular user session to repair Shelly's
+directories. This does not repair ownership of the parent `~/.cache` directory.
+
 `--aur-cache` can also be used without `--cache`; standard purify still checks
 for corrupted archives. The `--cache` retention count applies only to repository
 package archives, not to Shelly's cache. The UI's **Clean Package Cache** action
