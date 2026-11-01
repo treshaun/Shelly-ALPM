@@ -121,6 +121,19 @@ available. `Megabytes` remains the default; restore it with
 `shelly config set FileSizeDisplay Megabytes`. This setting affects human-readable
 CLI output; structured output keeps numeric byte counts.
 
+## CLI progress animation
+
+`ProgressBarStyle` defaults to `Shell`: a small `<` / `=` shell opens and closes
+as progress advances through a line of dots. Completed bars use `=` throughout.
+To select it in an existing configuration:
+
+```bash
+shelly config set ProgressBarStyle Shell
+```
+
+`Blocks` and `Pacman` remain available, and saved style choices are preserved.
+Redirected output prints completed progress lines without animation.
+
 ## PKGBUILD review
 
 Terminal PKGBUILD reviews show changed lines with three unchanged lines of
@@ -198,6 +211,15 @@ PKGBUILDs, checkout history, sources, build trees, package archives, and metadat
 This also removes caches for packages that are no longer installed. The cache
 root directory is retained; symlinks are removed without following their targets.
 Files outside Shelly's cache are not included.
+
+Shelly creates and updates the invoking user's cache with that user's credentials,
+including when launched through sudo, doas, pkexec, or run0. Running directly as
+root uses root's cache and creates root-owned entries. Absolute `XDG_CACHE_HOME`
+overrides are preserved. Failed user delegation never retries cache writes as root.
+
+Existing ownership damage is not repaired automatically. Use
+`shelly utility --fix-permissions` from your regular user session to repair Shelly's
+directories. This does not repair ownership of the parent `~/.cache` directory.
 
 `--aur-cache` can also be used without `--cache`; standard purify still checks
 for corrupted archives. The `--cache` retention count applies only to repository

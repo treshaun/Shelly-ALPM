@@ -86,7 +86,14 @@ pub fn format(allocator: std.mem.Allocator, err: anyerror, context: Context) ![]
     if (context.stage) |stage| try out.writer.print("\nStage: {s}", .{stage});
     if (std.mem.indexOf(u8, explanation, "Technical details:") == null)
         try out.writer.print("\n\nTechnical details: {s}", .{@errorName(err)});
-    if (context.domain) |domain| try out.writer.print("\nBackend: {s}", .{domain});
+    if (context.domain) |domain| {
+        // Native backends may already supply a complete diagnostic block.
+        var lines = std.mem.splitScalar(u8, explanation, '\n');
+        const already_present = while (lines.next()) |line| {
+            if (std.mem.startsWith(u8, line, "Backend: ") and std.mem.eql(u8, line["Backend: ".len..], domain)) break true;
+        } else false;
+        if (!already_present) try out.writer.print("\nBackend: {s}", .{domain});
+    }
     if (context.native_code) |code| try out.writer.print("\nNative code: {d}", .{code});
     return sanitizeAlloc(allocator, out.written());
 }
@@ -242,6 +249,7 @@ pub fn cause(err: anyerror) []const u8 {
         error.ElevationFailed => "Could not request administrator privileges. Review the authorization helper output before retrying.",
         error.ElevationRequired => "Administrator privileges are required. Run Shelly from your regular user session and approve authorization when requested.",
         error.NoElevator => "No authorization helper was found. Install or configure sudo, doas, or pkexec.",
+        error.CallerOperationFailed => "Could not update files as the calling user. Check directory permissions and repair existing root-owned Shelly files explicitly if needed.",
         error.InvokingUserUnavailable, error.CannotBuildAsRoot => "Could not identify a regular user to run the build. Start Shelly from your regular user session and approve authorization when requested.",
         error.AccessDenied, error.PermissionDenied => "Access was denied. Check that the invoking user has the required permissions for the selected files and directories.",
         error.NoSpaceLeft => "The destination has insufficient capacity. Check the filesystem space or the reported buffer limit before retrying.",
