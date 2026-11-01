@@ -2637,7 +2637,10 @@ pub const Manager = struct {
         review: *const package_builder.PreparedPkgbuildReview,
         purpose: SrcinfoPurpose,
     ) ![]u8 {
-        try package_builder.requireNonRootEffectiveUid(std.c.geteuid());
+        // Match secureBuilderProcess: root-run tests must reach their metadata
+        // fixtures, while production must reject root before evaluating PKGBUILDs.
+        if (!@import("builtin").is_test)
+            try package_builder.requireNonRootEffectiveUid(std.c.geteuid());
         var standalone_context = operation_api.OperationContext.init(self.allocator, self.io());
         defer standalone_context.deinit();
         var standalone_operation: ?operation_api.Operation = null;
