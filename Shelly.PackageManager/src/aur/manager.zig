@@ -1,4 +1,5 @@
 const std = @import("std");
+const builtin = @import("builtin");
 const caller_io = @import("user_account").caller_io;
 const trackReturnError = @import("diagnostics").captureError;
 const diagnostics = @import("diagnostics");
@@ -2639,7 +2640,7 @@ pub const Manager = struct {
     ) ![]u8 {
         // Match secureBuilderProcess: root-run tests must reach their metadata
         // fixtures, while production must reject root before evaluating PKGBUILDs.
-        if (!@import("builtin").is_test)
+        if (!builtin.is_test)
             try package_builder.requireNonRootEffectiveUid(std.c.geteuid());
         var standalone_context = operation_api.OperationContext.init(self.allocator, self.io());
         defer standalone_context.deinit();

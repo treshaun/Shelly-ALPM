@@ -1,4 +1,5 @@
 const std = @import("std");
+const user_account = @import("user_account");
 const diagnostics = @import("diagnostics");
 const toml = @import("toml");
 const process_runner = @import("builder.zig");
@@ -746,7 +747,7 @@ test "shellybuild resolves XDG path with caller home fallback" {
     defer std.testing.allocator.free(fallback_path);
     if (std.c.geteuid() == 0) {
         // Direct root uses its account home even when HOME names another user.
-        const root = (try @import("user_account").byUid(std.testing.allocator, 0)) orelse return error.InvokingUserUnavailable;
+        const root = (try user_account.byUid(std.testing.allocator, 0)) orelse return error.InvokingUserUnavailable;
         defer root.deinit(std.testing.allocator);
         const expected = try std.fs.path.join(std.testing.allocator, &.{ root.home, ".config", "shelly", file_name });
         defer std.testing.allocator.free(expected);
@@ -757,7 +758,7 @@ test "shellybuild resolves XDG path with caller home fallback" {
 }
 
 test "shellybuild elevated path ignores the coordinator XDG directory" {
-    const account = (try @import("user_account").byName(std.testing.allocator, "nobody")) orelse return error.SkipZigTest;
+    const account = (try user_account.byName(std.testing.allocator, "nobody")) orelse return error.SkipZigTest;
     defer account.deinit(std.testing.allocator);
     var elevated_map = std.process.Environ.Map.init(std.testing.allocator);
     defer elevated_map.deinit();
