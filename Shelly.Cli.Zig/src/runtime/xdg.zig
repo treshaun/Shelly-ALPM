@@ -164,9 +164,17 @@ test "uses absolute XDG paths and rejects relative overrides" {
         .environment = &environment,
     };
     try std.testing.expectEqualStrings("/tmp/config-root", try configHome(&context));
-    try std.testing.expectEqualStrings("/home/tester/.cache", try cacheHome(&context));
+    // Direct root falls back to its account home, regardless of HOME.
+    const expected_home = if (elevation.isRoot()) blk: {
+        const root = (try user_account.byUid(arena.allocator(), 0)) orelse return error.InvokingUserUnavailable;
+        break :blk root.home;
+    } else "/home/tester";
     try std.testing.expectEqualStrings(
-        "/home/tester/.cache/Shelly/db",
+        try std.fs.path.join(arena.allocator(), &.{ expected_home, ".cache" }),
+        try cacheHome(&context),
+    );
+    try std.testing.expectEqualStrings(
+        try std.fs.path.join(arena.allocator(), &.{ expected_home, ".cache", "Shelly", "db" }),
         try shellyCache(&context, &.{"db"}),
     );
     try std.testing.expectEqualStrings(
