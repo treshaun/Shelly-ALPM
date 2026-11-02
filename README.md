@@ -427,6 +427,20 @@ The original compressed file remains in `src`, and `noextract` entries stay
 compressed. Decompression rejects output collisions and files exceeding 4 GiB;
 failed source preparation discards the staging tree.
 
+Downgrades accept more than one installed package so a package and its
+dependencies can move to older versions together in a single transaction:
+
+```bash
+shelly downgrade --list-options linux mesa
+shelly downgrade --oldest linux mesa
+```
+
+`--oldest` selects the oldest candidate for every package, `--no-confirm`
+selects the newest candidate for each without prompting, and interactive mode
+prompts per package. `--ignore` adds every downgraded package to `IgnorePkg`.
+`--target` remains a single-package option and cannot be combined with
+multiple packages.
+
 ### CLI Configuration
 
 Shelly-CLI uses a JSON configuration file to customize its behavior. On the first run, it automatically creates a
